@@ -22,4 +22,8 @@
         <settingConfig type="boolean" />
     </setting>
 
+    <setting propertyKey="@Properties.ShowGrid" title="@Strings.ShowGridTitle">
+        <settingConfig type="boolean" />
+    </setting>
+
 </settings>

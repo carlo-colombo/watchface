@@ -35,33 +35,34 @@ class SevenSegmentDigit {
     }
 
     function draw(dc as Dc, x as Number, y as Number, digit as Number) as Void {
+        drawScaled(dc, x, y, digit, _width, _height, _thickness);
+    }
+
+    function drawScaled(dc as Dc, x as Number, y as Number, digit as Number, w as Number, h as Number, t as Number) as Void {
         if (digit < 0 || digit > 9) {
             return;
         }
 
         var segments = DIGITS[digit];
-        var t = _thickness;
-        var w = _width;
-        var h = _height;
         var h2 = h / 2;
 
         // A (Top)
-        drawHorizontalSegment(dc, x + t/2, y, w - t, segments[0]);
+        drawHorizontalSegmentScaled(dc, x + t/2, y, w - t, t, segments[0]);
         // B (Top-Right)
-        drawVerticalSegment(dc, x + w - t, y + t/2, h2 - t, segments[1]);
+        drawVerticalSegmentScaled(dc, x + w - t, y + t/2, h2 - t, t, segments[1]);
         // C (Bottom-Right)
-        drawVerticalSegment(dc, x + w - t, y + h2 + t/2, h2 - t, segments[2]);
+        drawVerticalSegmentScaled(dc, x + w - t, y + h2 + t/2, h2 - t, t, segments[2]);
         // D (Bottom)
-        drawHorizontalSegment(dc, x + t/2, y + h - t, w - t, segments[3]);
+        drawHorizontalSegmentScaled(dc, x + t/2, y + h - t, w - t, t, segments[3]);
         // E (Bottom-Left)
-        drawVerticalSegment(dc, x, y + h2 + t/2, h2 - t, segments[4]);
+        drawVerticalSegmentScaled(dc, x, y + h2 + t/2, h2 - t, t, segments[4]);
         // F (Top-Left)
-        drawVerticalSegment(dc, x, y + t/2, h2 - t, segments[5]);
+        drawVerticalSegmentScaled(dc, x, y + t/2, h2 - t, t, segments[5]);
         // G (Middle)
-        drawHorizontalSegment(dc, x + t/2, y + h2 - t/2, w - t, segments[6]);
+        drawHorizontalSegmentScaled(dc, x + t/2, y + h2 - t/2, w - t, t, segments[6]);
     }
 
-    private function drawHorizontalSegment(dc as Dc, x as Number, y as Number, w as Number, active as Boolean) as Void {
+    private function drawHorizontalSegmentScaled(dc as Dc, x as Number, y as Number, w as Number, t as Number, active as Boolean) as Void {
         if (active) {
             dc.setColor(_color, Graphics.COLOR_TRANSPARENT);
         } else if (_inactiveColor != null) {
@@ -70,7 +71,6 @@ class SevenSegmentDigit {
             return;
         }
 
-        var t = _thickness;
         var points = [
             [x + t/2, y],
             [x + w - t/2, y],
@@ -82,7 +82,7 @@ class SevenSegmentDigit {
         dc.fillPolygon(points);
     }
 
-    private function drawVerticalSegment(dc as Dc, x as Number, y as Number, h as Number, active as Boolean) as Void {
+    private function drawVerticalSegmentScaled(dc as Dc, x as Number, y as Number, h as Number, t as Number, active as Boolean) as Void {
         if (active) {
             dc.setColor(_color, Graphics.COLOR_TRANSPARENT);
         } else if (_inactiveColor != null) {
@@ -91,7 +91,6 @@ class SevenSegmentDigit {
             return;
         }
 
-        var t = _thickness;
         var points = [
             [x + t/2, y],
             [x + t, y + t/2],
@@ -101,5 +100,13 @@ class SevenSegmentDigit {
             [x, y + t/2]
         ];
         dc.fillPolygon(points);
+    }
+
+    private function drawHorizontalSegment(dc as Dc, x as Number, y as Number, w as Number, active as Boolean) as Void {
+        drawHorizontalSegmentScaled(dc, x, y, w, _thickness, active);
+    }
+
+    private function drawVerticalSegment(dc as Dc, x as Number, y as Number, h as Number, active as Boolean) as Void {
+        drawVerticalSegmentScaled(dc, x, y, h, _thickness, active);
     }
 }
