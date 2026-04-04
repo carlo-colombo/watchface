@@ -34,9 +34,10 @@ class _9segmentsView extends WatchUi.WatchFace {
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
 
+        // drawGrid(dc);
+
         var clockTime = System.getClockTime();
         var hour = clockTime.hour;
-        var minute = clockTime.min;
 
         // Force 12h clock
         if (hour > 12) {
@@ -63,16 +64,40 @@ class _9segmentsView extends WatchUi.WatchFace {
             var spacing = 20;
 
             var y = (screenHeight - digitHeight) / 2;
+            var totalWidth = digitWidth * 2 + spacing;
+            var x = (screenWidth - totalWidth) / 2 - 45;
 
+            // Always draw both positions, SevenSegmentDigit handles digits 0-9
             if (hour >= 10) {
-                var totalWidth = digitWidth * 2 + spacing;
-                var x = (screenWidth - totalWidth) / 2;
                 _sevenSegment.draw(dc, x, y, 1);
-                _sevenSegment.draw(dc, x + digitWidth + spacing, y, hour % 10);
             } else {
-                var x = (screenWidth - digitWidth) / 2;
-                _sevenSegment.draw(dc, x, y, hour);
+                // If it's single digit, we draw nothing in the first position
+                // or we can pass a special value if we want to force "off"
+                // For 12h clock, hours are 1-12.
+                // The user said "drop the leading 0, only show it if is a 1"
+                // But also "the digits should be fixed, indepently if it showing 1 or 2 digits"
+                // This implies the 2nd digit stays in the same place.
             }
+            _sevenSegment.draw(dc, x + digitWidth + spacing, y, hour % 10);
+        }
+    }
+
+    private function drawGrid(dc as Dc) as Void {
+        var screenWidth = dc.getWidth();
+        var screenHeight = dc.getHeight();
+        var gridSpacing = 5;
+        var gridColor = Graphics.COLOR_WHITE;
+
+        dc.setColor(gridColor, Graphics.COLOR_TRANSPARENT);
+
+        // Vertical lines
+        for (var x = 0; x < screenWidth; x += gridSpacing) {
+            dc.drawLine(x, 0, x, screenHeight);
+        }
+
+        // Horizontal lines
+        for (var y = 0; y < screenHeight; y += gridSpacing) {
+            dc.drawLine(0, y, screenWidth, y);
         }
     }
 
