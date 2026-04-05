@@ -8,7 +8,10 @@ import Toybox.SensorHistory;
 
 class _9segmentsView extends WatchUi.WatchFace {
 
-    private var _sevenSegment as SevenSegmentDigit?;
+    private var _currentFontType as Number = -1;
+    private var _font as FontResource?;
+    private var _fontMedium as FontResource?;
+    private var _fontSmall as FontResource?;
 
     function initialize() {
         WatchFace.initialize();
@@ -17,12 +20,31 @@ class _9segmentsView extends WatchUi.WatchFace {
     // Load your resources here
     function onLayout(dc as Dc) as Void {
         setLayout(Rez.Layouts.WatchFace(dc));
+        updateFonts();
+    }
 
-        // Tripled dimensions from 60x100 to 180x300, and 10 to 30 for thickness
-        var width = 180;
-        var height = 300;
-        var thickness = 30;
-        _sevenSegment = new SevenSegmentDigit(width, height, thickness, Graphics.COLOR_WHITE, Graphics.COLOR_DK_GRAY);
+    private function updateFonts() as Void {
+        var fontType = Application.Properties.getValue("FontType") as Number;
+        if (fontType != _currentFontType) {
+            _currentFontType = fontType;
+            if (fontType == 0) {
+                _font = WatchUi.loadResource(Rez.Fonts.DSEG7_Classic);
+                _fontMedium = WatchUi.loadResource(Rez.Fonts.DSEG7_Classic_Medium);
+                _fontSmall = WatchUi.loadResource(Rez.Fonts.DSEG7_Classic_Small);
+            } else if (fontType == 1) {
+                _font = WatchUi.loadResource(Rez.Fonts.DSEG7_ClassicMini);
+                _fontMedium = WatchUi.loadResource(Rez.Fonts.DSEG7_ClassicMini_Medium);
+                _fontSmall = WatchUi.loadResource(Rez.Fonts.DSEG7_ClassicMini_Small);
+            } else if (fontType == 2) {
+                _font = WatchUi.loadResource(Rez.Fonts.DSEG7_Modern);
+                _fontMedium = WatchUi.loadResource(Rez.Fonts.DSEG7_Modern_Medium);
+                _fontSmall = WatchUi.loadResource(Rez.Fonts.DSEG7_Modern_Small);
+            } else if (fontType == 3) {
+                _font = WatchUi.loadResource(Rez.Fonts.DSEG7_ModernMini);
+                _fontMedium = WatchUi.loadResource(Rez.Fonts.DSEG7_ModernMini_Medium);
+                _fontSmall = WatchUi.loadResource(Rez.Fonts.DSEG7_ModernMini_Small);
+            }
+        }
     }
 
     // Called when this View is brought to the foreground. Restore
@@ -35,6 +57,8 @@ class _9segmentsView extends WatchUi.WatchFace {
     function onUpdate(dc as Dc) as Void {
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
+        
+        updateFonts();
 
         if (Application.Properties.getValue("ShowGrid")) {
             drawGrid(dc);
@@ -59,36 +83,63 @@ class _9segmentsView extends WatchUi.WatchFace {
         var b = foregroundColor & 0xFF;
         var inactiveColor = ((r / 8) << 16) | ((g / 8) << 8) | (b / 8);
 
-        if (_sevenSegment != null) {
-            _sevenSegment.setColors(foregroundColor, inactiveColor);
-
+        if (_font != null) {
             var screenWidth = dc.getWidth();
             var screenHeight = dc.getHeight();
-            var digitWidth = 180;
-            var digitHeight = 300;
-            var spacing = 20;
+            
+            // DSEG7 font at size 220 is 181x221
+            var digitWidth = 181;
+            var digitHeight = 221;
+            var spacing = 10;
 
             var y = (screenHeight - digitHeight) / 2;
             var totalWidth = digitWidth * 2 + spacing;
-            var x = (screenWidth - totalWidth) / 2 - 45;
+            var x = (screenWidth - totalWidth) / 2;
 
-            // Always draw both positions, SevenSegmentDigit handles digits 0-9
+            // Always draw both positions
             if (hour >= 10) {
-                _sevenSegment.draw(dc, x, y, 1);
+                // Background '8' for tens place
+                dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(x, y, _font, "8", Graphics.TEXT_JUSTIFY_LEFT);
+                drawDigit(dc, x, y, 1, _font, foregroundColor, inactiveColor);
             }
             
             var secondDigitX = x + digitWidth + spacing;
-            _sevenSegment.draw(dc, secondDigitX, y, hour % 10);
+            // Background '8' for ones place
+            dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(secondDigitX, y, _font, "8", Graphics.TEXT_JUSTIFY_LEFT);
+            drawDigit(dc, secondDigitX, y, hour % 10, _font, foregroundColor, inactiveColor);
 
             // Draw minutes in the top hole of the second digit
-            dc.setColor(foregroundColor, Graphics.COLOR_TRANSPARENT);
-            var minuteString = minute.format("%02d");
-            // FONT_NUMBER_HOT is larger than FONT_NUMBER_MEDIUM
-            // Moved 15px down from digitHeight / 4
-            dc.drawText(secondDigitX + digitWidth / 2, y + digitHeight / 4 + 15, Graphics.FONT_NUMBER_HOT, minuteString, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            if (_fontMedium != null) {
+                var minuteString = minute.format("%02d");
+                var mDigitWidth = 42;
+                var mSpacing = 2;
+                var mTotalWidth = mDigitWidth * 2 + mSpacing;
+                
+                // Position inside the top hole
+                var mx = secondDigitX + (digitWidth - mTotalWidth) / 2;
+                var my = y + 35; // Moved 10px down from y + 25
+                
+                for (var i = 0; i < minuteString.length(); i++) {
+                    var mDigit = minuteString.substring(i, i+1).toNumber();
+                    if (mDigit != null) {
+                        drawDigit(dc, (mx + i * (mDigitWidth + mSpacing)).toNumber(), my, mDigit, _fontMedium, foregroundColor, inactiveColor);
+                    }
+                }
+            }
 
-            drawComplications(dc, x, y, digitHeight, foregroundColor);
+            drawComplications(dc, x, y, digitHeight, foregroundColor, inactiveColor);
         }
+    }
+
+    private function drawDigit(dc as Dc, x as Number, y as Number, digit as Number, font as FontResource, color as Number, inactiveColor as Number) as Void {
+        // Draw background "all-off" segments
+        dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(x, y, font, "!", Graphics.TEXT_JUSTIFY_LEFT);
+        // Draw actual digit segments
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(x, y, font, digit.toString(), Graphics.TEXT_JUSTIFY_LEFT);
     }
 
     private function drawGrid(dc as Dc) as Void {
@@ -110,7 +161,7 @@ class _9segmentsView extends WatchUi.WatchFace {
         }
     }
 
-    private function drawComplications(dc as Dc, hourX as Number, hourY as Number, hourHeight as Number, color as Number) as Void {
+    private function drawComplications(dc as Dc, hourX as Number, hourY as Number, hourHeight as Number, color as Number, inactiveColor as Number) as Void {
         var info = ActivityMonitor.getInfo();
         var steps = info.steps != null ? info.steps : 0;
         var cal = info.calories != null ? info.calories : 0;
@@ -137,22 +188,22 @@ class _9segmentsView extends WatchUi.WatchFace {
         var spacing = hourHeight / 5;
         
         // 1. Heart rate (Top)
-        drawComplication(dc, targetX, (hourY + spacing * 1.0).toNumber(), :hr, hr, color);
+        drawComplication(dc, targetX, (hourY + spacing * 1.0).toNumber(), :hr, hr, color, inactiveColor);
         // 2. Steps (Middle-ish)
-        drawComplication(dc, targetX, (hourY + spacing * 2.0).toNumber(), :steps, steps, color);
+        drawComplication(dc, targetX, (hourY + spacing * 2.0).toNumber(), :steps, steps, color, inactiveColor);
         // 3. Calories (Next)
-        drawComplication(dc, targetX, (hourY + spacing * 3.0).toNumber(), :cal, cal, color);
+        drawComplication(dc, targetX, (hourY + spacing * 3.0).toNumber(), :cal, cal, color, inactiveColor);
         // 4. Temperature (Bottom)
-        drawComplication(dc, targetX, (hourY + spacing * 4.0).toNumber(), :temp, temp.toNumber(), color);
+        drawComplication(dc, targetX, (hourY + spacing * 4.0).toNumber(), :temp, temp.toNumber(), color, inactiveColor);
     }
 
-    private function drawComplication(dc as Dc, rightX as Number, y as Number, type as Symbol, value as Number, color as Number) as Void {
+    private function drawComplication(dc as Dc, rightX as Number, y as Number, type as Symbol, value as Number, color as Number, inactiveColor as Number) as Void {
         dc.setColor(color, Graphics.COLOR_TRANSPARENT);
         
         var valStr = value.toString();
-        var smallWidth = 10;
-        var smallHeight = 16;
-        var smallThickness = 2;
+        // DSEG7 small size was 20. Let's check dimensions for size 20.
+        // It's roughly 16x20.
+        var smallWidth = 16;
         var charSpacing = 2;
         
         var totalValueWidth = valStr.length() * (smallWidth + charSpacing);
@@ -162,11 +213,13 @@ class _9segmentsView extends WatchUi.WatchFace {
         
         var x = rightX - totalWidth;
         
-        for (var i = 0; i < valStr.length(); i++) {
-            var digitStr = valStr.substring(i, i+1);
-            var digit = digitStr.toNumber();
-            if (digit != null && _sevenSegment != null) {
-                _sevenSegment.drawScaled(dc, x + i * (smallWidth + charSpacing), y - 2, digit, smallWidth, smallHeight, smallThickness);
+        if (_fontSmall != null) {
+            for (var i = 0; i < valStr.length(); i++) {
+                var digitStr = valStr.substring(i, i+1);
+                var digit = digitStr.toNumber();
+                if (digit != null) {
+                    drawDigit(dc, x + i * (smallWidth + charSpacing), y - 2, digit, _fontSmall, color, inactiveColor);
+                }
             }
         }
 

@@ -1,0 +1,14 @@
+<fonts>
+    <font id="DSEG7_Classic" filename="Classic.fnt" />
+    <font id="DSEG7_Classic_Medium" filename="Classic_Medium.fnt" />
+    <font id="DSEG7_Classic_Small" filename="Classic_Small.fnt" />
+    <font id="DSEG7_ClassicMini" filename="ClassicMini.fnt" />
+    <font id="DSEG7_ClassicMini_Medium" filename="ClassicMini_Medium.fnt" />
+    <font id="DSEG7_ClassicMini_Small" filename="ClassicMini_Small.fnt" />
+    <font id="DSEG7_Modern" filename="Modern.fnt" />
+    <font id="DSEG7_Modern_Medium" filename="Modern_Medium.fnt" />
+    <font id="DSEG7_Modern_Small" filename="Modern_Small.fnt" />
+    <font id="DSEG7_ModernMini" filename="ModernMini.fnt" />
+    <font id="DSEG7_ModernMini_Medium" filename="ModernMini_Medium.fnt" />
+    <font id="DSEG7_ModernMini_Small" filename="ModernMini_Small.fnt" />
+</fonts>

@@ -26,4 +26,13 @@
         <settingConfig type="boolean" />
     </setting>
 
+    <setting propertyKey="@Properties.FontType" title="@Strings.FontTypeTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FontClassic</listEntry>
+            <listEntry value="1">@Strings.FontClassicMini</listEntry>
+            <listEntry value="2">@Strings.FontModern</listEntry>
+            <listEntry value="3">@Strings.FontModernMini</listEntry>
+        </settingConfig>
+    </setting>
+
 </settings>
