@@ -132,6 +132,36 @@ class _9segmentsView extends WatchUi.WatchFace {
             }
 
             drawComplications(dc, x, y, digitHeight, foregroundColor, inactiveColor);
+            drawBattery(dc, screenWidth / 2, screenHeight - 25, foregroundColor, inactiveColor);
+        }
+    }
+
+    private function drawBattery(dc as Dc, x as Number, y as Number, color as Number, inactiveColor as Number) as Void {
+        var battery = System.getSystemStats().battery;
+        var width = 40;
+        var height = 20;
+        var xStart = x - width / 2;
+        var yStart = y - height / 2;
+
+        // Draw battery outline
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        dc.drawRectangle(xStart, yStart, width, height);
+        // Draw battery terminal
+        dc.fillRectangle(xStart + width, yStart + height / 4, 3, height / 2);
+
+        // Draw fill
+        var fillWidth = ((width - 4) * (battery / 100.0)).toNumber();
+        if (battery > 10) {
+            dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        } else {
+            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+        }
+        dc.fillRectangle(xStart + 2, yStart + 2, fillWidth, height - 4);
+        
+        // Background fill (dimmed)
+        if (fillWidth < width - 4) {
+            dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(xStart + 2 + fillWidth, yStart + 2, (width - 4) - fillWidth, height - 4);
         }
     }
 
