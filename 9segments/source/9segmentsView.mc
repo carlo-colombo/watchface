@@ -115,13 +115,13 @@ class _9segmentsView extends WatchUi.WatchFace {
             // Draw minutes in the top hole of the second digit
             if (_fontMedium != null) {
                 var minuteString = minute.format("%02d");
-                var mDigitWidth = 42;
+                var mDigitWidth = 62;
                 var mSpacing = 2;
                 var mTotalWidth = mDigitWidth * 2 + mSpacing;
                 
                 // Position inside the top hole
                 var mx = secondDigitX + (digitWidth - mTotalWidth) / 2;
-                var my = y + 35; // Moved 10px down from y + 25
+                var my = y + 40; // Moved 10px up from y + 50
                 
                 for (var i = 0; i < minuteString.length(); i++) {
                     var mDigit = minuteString.substring(i, i+1).toNumber();

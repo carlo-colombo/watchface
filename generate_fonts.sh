@@ -67,9 +67,10 @@ for i in "${!STYLES[@]}"; do
     echo "Generating fonts for style: ${STYLE}..."
 
     # 1. DSEG7 Large (Hours)
-    L_WIDTH=391
-    L_HEIGHT=431
-    L_POINT=480
+    # Original size: 181x221 -> 241x281 (Requested +60px)
+    L_WIDTH=241
+    L_HEIGHT=281
+    L_POINT=280
     for j in "${!D7_CHARS[@]}"; do
         magick -background none -fill white -font "${D7_PATH}" -pointsize ${L_POINT} -gravity center label:"${D7_CHARS[$j]}" -extent ${L_WIDTH}x${L_HEIGHT} "${TMP_DIR}/d7_large_${j}.png"
     done
@@ -77,9 +78,10 @@ for i in "${!STYLES[@]}"; do
     generate_fnt "${STYLE}" ${L_WIDTH} ${L_HEIGHT} "${STYLE}.png" "${D7_CHARS[@]}"
 
     # 2. DSEG7 Medium (Minutes)
-    M_WIDTH=42
-    M_HEIGHT=51
-    M_POINT=50
+    # Reduced width by 10px: 72x81 -> 62x70 (Proportional)
+    M_WIDTH=62
+    M_HEIGHT=70
+    M_POINT=69
     for j in "${!D7_CHARS[@]}"; do
         magick -background none -fill white -font "${D7_PATH}" -pointsize ${M_POINT} -gravity center label:"${D7_CHARS[$j]}" -extent ${M_WIDTH}x${M_HEIGHT} "${TMP_DIR}/d7_med_${j}.png"
     done
@@ -101,7 +103,12 @@ for i in "${!STYLES[@]}"; do
     D_HEIGHT=20
     D_POINT=20
     for j in "${!D14_CHARS[@]}"; do
-        magick -background none -fill white -font "${D14_PATH}" -pointsize ${D_POINT} -gravity center label:"${D14_CHARS[$j]}" -extent ${D_WIDTH}x${D_HEIGHT} "${TMP_DIR}/d14_date_${j}.png"
+        char="${D14_CHARS[$j]}"
+        if [ "$char" == " " ]; then
+            magick -size ${D_WIDTH}x${D_HEIGHT} xc:none "${TMP_DIR}/d14_date_${j}.png"
+        else
+            magick -background none -fill white -font "${D14_PATH}" -pointsize ${D_POINT} -gravity center label:"${char}" -extent ${D_WIDTH}x${D_HEIGHT} "${TMP_DIR}/d14_date_${j}.png"
+        fi
     done
     magick "${TMP_DIR}/d14_date_"{0..36}.png +append "${OUT_DIR}/${STYLE}_D14_Date.png"
     generate_fnt "${STYLE}_D14_Date" ${D_WIDTH} ${D_HEIGHT} "${STYLE}_D14_Date.png" "${D14_CHARS[@]}"
