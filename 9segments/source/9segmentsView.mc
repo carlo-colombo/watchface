@@ -87,24 +87,26 @@ class _9segmentsView extends WatchUi.WatchFace {
             var screenWidth = dc.getWidth();
             var screenHeight = dc.getHeight();
             
-            // DSEG7 font at size 220 is 181x221
-            var digitWidth = 181;
-            var digitHeight = 221;
+            // DSEG7 font at size 280 is 241x281
+            var digitWidth = 241;
+            var digitHeight = 281;
             var spacing = 10;
 
             var y = (screenHeight - digitHeight) / 2;
             var totalWidth = digitWidth * 2 + spacing;
-            var x = (screenWidth - totalWidth) / 2;
+            var x = (screenWidth - totalWidth) / 2 - 30;
+
+            var firstDigitX = x + 15;
+            var secondDigitX = x + digitWidth + spacing - 30;
 
             // Always draw both positions
             if (hour >= 10) {
                 // Background '8' for tens place
                 dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(x, y, _font, "8", Graphics.TEXT_JUSTIFY_LEFT);
-                drawDigit(dc, x, y, 1, _font, foregroundColor, inactiveColor);
+                dc.drawText(firstDigitX, y, _font, "8", Graphics.TEXT_JUSTIFY_LEFT);
+                drawDigit(dc, firstDigitX, y, 1, _font, foregroundColor, inactiveColor);
             }
             
-            var secondDigitX = x + digitWidth + spacing;
             // Background '8' for ones place
             dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
             dc.drawText(secondDigitX, y, _font, "8", Graphics.TEXT_JUSTIFY_LEFT);
