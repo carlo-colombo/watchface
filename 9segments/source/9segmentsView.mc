@@ -108,12 +108,13 @@ class _9segmentsView extends WatchUi.WatchFace {
             var firstDigitX = x + 15;
             var secondDigitX = x + digitWidth + spacing - 30;
 
-            // Always draw both positions
+            // Tens place: always show '1' as background
+            dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(firstDigitX, y, _font, "!", Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(firstDigitX, y, _font, "1", Graphics.TEXT_JUSTIFY_LEFT);
             if (hour >= 10) {
-                // Background '8' for tens place
-                dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(firstDigitX, y, _font, "8", Graphics.TEXT_JUSTIFY_LEFT);
-                drawDigit(dc, firstDigitX, y, 1, _font, foregroundColor, inactiveColor);
+                dc.setColor(foregroundColor, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(firstDigitX, y, _font, "1", Graphics.TEXT_JUSTIFY_LEFT);
             }
             
             // Background '8' for ones place
