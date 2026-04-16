@@ -5,6 +5,8 @@ import Toybox.System;
 import Toybox.WatchUi;
 import Toybox.ActivityMonitor;
 import Toybox.SensorHistory;
+import Toybox.Time;
+import Toybox.Time.Gregorian;
 
 class _9segmentsView extends WatchUi.WatchFace {
 
@@ -12,6 +14,7 @@ class _9segmentsView extends WatchUi.WatchFace {
     private var _font as FontResource?;
     private var _fontMedium as FontResource?;
     private var _fontSmall as FontResource?;
+    private var _fontDate as FontResource?;
 
     function initialize() {
         WatchFace.initialize();
@@ -31,18 +34,22 @@ class _9segmentsView extends WatchUi.WatchFace {
                 _font = WatchUi.loadResource(Rez.Fonts.DSEG7_Classic);
                 _fontMedium = WatchUi.loadResource(Rez.Fonts.DSEG7_Classic_Medium);
                 _fontSmall = WatchUi.loadResource(Rez.Fonts.DSEG7_Classic_Small);
+                _fontDate = WatchUi.loadResource(Rez.Fonts.DSEG14_Classic_Date);
             } else if (fontType == 1) {
                 _font = WatchUi.loadResource(Rez.Fonts.DSEG7_ClassicMini);
                 _fontMedium = WatchUi.loadResource(Rez.Fonts.DSEG7_ClassicMini_Medium);
                 _fontSmall = WatchUi.loadResource(Rez.Fonts.DSEG7_ClassicMini_Small);
+                _fontDate = WatchUi.loadResource(Rez.Fonts.DSEG14_ClassicMini_Date);
             } else if (fontType == 2) {
                 _font = WatchUi.loadResource(Rez.Fonts.DSEG7_Modern);
                 _fontMedium = WatchUi.loadResource(Rez.Fonts.DSEG7_Modern_Medium);
                 _fontSmall = WatchUi.loadResource(Rez.Fonts.DSEG7_Modern_Small);
+                _fontDate = WatchUi.loadResource(Rez.Fonts.DSEG14_Modern_Date);
             } else if (fontType == 3) {
                 _font = WatchUi.loadResource(Rez.Fonts.DSEG7_ModernMini);
                 _fontMedium = WatchUi.loadResource(Rez.Fonts.DSEG7_ModernMini_Medium);
                 _fontSmall = WatchUi.loadResource(Rez.Fonts.DSEG7_ModernMini_Small);
+                _fontDate = WatchUi.loadResource(Rez.Fonts.DSEG14_ModernMini_Date);
             }
         }
     }
@@ -82,6 +89,8 @@ class _9segmentsView extends WatchUi.WatchFace {
         var g = (foregroundColor >> 8) & 0xFF;
         var b = foregroundColor & 0xFF;
         var inactiveColor = ((r / 8) << 16) | ((g / 8) << 8) | (b / 8);
+
+        drawDate(dc, foregroundColor, inactiveColor);
 
         if (_font != null) {
             var screenWidth = dc.getWidth();
@@ -133,6 +142,24 @@ class _9segmentsView extends WatchUi.WatchFace {
 
             drawComplications(dc, x, y, digitHeight, foregroundColor, inactiveColor);
             drawBattery(dc, screenWidth / 2, screenHeight - 25, foregroundColor, inactiveColor);
+        }
+    }
+
+    private function drawDate(dc as Dc, color as Number, inactiveColor as Number) as Void {
+        var now = Time.now();
+        var info = Gregorian.info(now, Time.FORMAT_SHORT);
+        var dateStr = info.day.format("%02d") + " " + info.month.format("%02d");
+        
+        if (_fontDate != null) {
+            var x = dc.getWidth() / 2;
+            var y = 20; // Top of screen
+            
+            dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
+            // "!" is all segments on for DSEG14 as well in most cases
+            dc.drawText(x, y, _fontDate, "!!!!!", Graphics.TEXT_JUSTIFY_CENTER);
+            
+            dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(x, y, _fontDate, dateStr, Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
