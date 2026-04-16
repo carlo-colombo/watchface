@@ -1,2 +1,9 @@
+# ConnectIQ build artifacts
 **/bin/
-9segments/bin/
+**/gen/
+**/mir/
+*.prg
+*.debug.xml
+
+# Sensitive files
+developer_key
