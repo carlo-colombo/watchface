@@ -205,28 +205,17 @@ class _9segmentsView extends WatchUi.WatchFace {
             hr = hrSample.heartRate;
         }
 
-        var temp = 0;
-        if (SensorHistory has :getTemperatureHistory) {
-            var tempIter = SensorHistory.getTemperatureHistory({:period => 1, :order => SensorHistory.ORDER_NEWEST_FIRST});
-            var tempSample = tempIter.next();
-            if (tempSample != null && tempSample.data != null) {
-                temp = tempSample.data;
-            }
-        }
-
         // Target right-alignment at x=100
         var targetX = 100; 
-        // We have 4 items. Let's use roughly 1/5th spacing.
-        var spacing = hourHeight / 5;
+        // We have 3 items. Let's use 1/4th spacing to center them vertically.
+        var spacing = hourHeight / 4;
         
         // 1. Heart rate (Top)
         drawComplication(dc, targetX, (hourY + spacing * 1.0).toNumber(), :hr, hr, color, inactiveColor);
-        // 2. Steps (Middle-ish)
+        // 2. Steps (Middle)
         drawComplication(dc, targetX, (hourY + spacing * 2.0).toNumber(), :steps, steps, color, inactiveColor);
-        // 3. Calories (Next)
+        // 3. Calories (Bottom)
         drawComplication(dc, targetX, (hourY + spacing * 3.0).toNumber(), :cal, cal, color, inactiveColor);
-        // 4. Temperature (Bottom)
-        drawComplication(dc, targetX, (hourY + spacing * 4.0).toNumber(), :temp, temp.toNumber(), color, inactiveColor);
     }
 
     private function drawComplication(dc as Dc, rightX as Number, y as Number, type as Symbol, value as Number, color as Number, inactiveColor as Number) as Void {
