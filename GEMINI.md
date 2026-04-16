@@ -44,6 +44,23 @@ java -Xms1g -Dfile.encoding=UTF-8 -jar /home/carlo/.Garmin/ConnectIQ/Sdks/connec
     /home/carlo/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-9.1.0-2026-03-09-6a872a80b/bin/monkeydo 9segments/bin/9segments.prg vivoactive5
     ```
 
+## Release and Deployment
+
+### Release Build
+To create a production-ready build for the device (stripping debug info):
+```bash
+java -Xms1g -Dfile.encoding=UTF-8 -jar /home/carlo/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-9.1.0-2026-03-09-6a872a80b/bin/monkeybrains.jar -o 9segments/bin/9segments-release.prg -f 9segments/monkey.jungle -y developer_key -d vivoactive5 -r -w
+```
+
+### Deployment (MTP)
+1.  Connect the watch via USB.
+2.  Ensure it is mounted (e.g., at `mtp:/vívoactive 5/`).
+3.  Copy the compiled `.prg` file to the `GARMIN/APPS/` folder on the device:
+    ```bash
+    # Example using GIO if mounted
+    gio copy 9segments/bin/9segments-release.prg "mtp:/vívoactive 5/Primary/GARMIN/APPS/9segments.prg"
+    ```
+
 ## Development Conventions
 
 - **Source Code:** All Monkey C files are in `9segments/source/`.
