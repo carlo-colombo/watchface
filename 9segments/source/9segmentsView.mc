@@ -242,20 +242,30 @@ class _9segmentsView extends WatchUi.WatchFace {
         drawComplication(dc, targetX, (hourY + spacing * 1.0).toNumber(), :hr, hr, color, inactiveColor);
         // 2. Steps (Middle)
         drawComplication(dc, targetX, (hourY + spacing * 2.0).toNumber(), :steps, steps, color, inactiveColor);
-        // 3. Calories (Bottom)
-        drawComplication(dc, targetX, (hourY + spacing * 3.0).toNumber(), :cal, cal, color, inactiveColor);
+        
+        // 3. Calories (Bottom) - Show in thousands with one decimal
+        var calStr = (cal / 1000.0).format("%.1f");
+        drawComplication(dc, targetX, (hourY + spacing * 3.0).toNumber(), :cal, calStr, color, inactiveColor);
     }
 
-    private function drawComplication(dc as Dc, rightX as Number, y as Number, type as Symbol, value as Number, color as Number, inactiveColor as Number) as Void {
+    private function drawComplication(dc as Dc, rightX as Number, y as Number, type as Symbol, value, color as Number, inactiveColor as Number) as Void {
         dc.setColor(color, Graphics.COLOR_TRANSPARENT);
         
         var valStr = value.toString();
-        // DSEG7 small size was 20. Let's check dimensions for size 20.
-        // It's roughly 16x20.
+        // DSEG7 small size was 20. It's roughly 16x20.
         var smallWidth = 16;
         var charSpacing = 2;
+        var dotWidth = 6;
         
-        var totalValueWidth = valStr.length() * (smallWidth + charSpacing);
+        var totalValueWidth = 0;
+        for (var i = 0; i < valStr.length(); i++) {
+            if (valStr.substring(i, i+1).equals(".")) {
+                totalValueWidth += dotWidth + charSpacing;
+            } else {
+                totalValueWidth += smallWidth + charSpacing;
+            }
+        }
+
         var iconWidth = 12;
         var padding = 5;
         var totalWidth = totalValueWidth + padding + iconWidth;
@@ -263,11 +273,20 @@ class _9segmentsView extends WatchUi.WatchFace {
         var x = rightX - totalWidth;
         
         if (_fontSmall != null) {
+            var currentX = x;
             for (var i = 0; i < valStr.length(); i++) {
-                var digitStr = valStr.substring(i, i+1);
-                var digit = digitStr.toNumber();
-                if (digit != null) {
-                    drawDigit(dc, x + i * (smallWidth + charSpacing), y - 2, digit, _fontSmall, color, inactiveColor);
+                var char = valStr.substring(i, i+1);
+                if (char.equals(".")) {
+                    dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+                    // Draw tiny square (4x4) centered in the dotWidth slot
+                    dc.fillRectangle(currentX + (dotWidth - 4) / 2, y + 12, 4, 4);
+                    currentX += dotWidth + charSpacing;
+                } else {
+                    var digit = char.toNumber();
+                    if (digit != null) {
+                        drawDigit(dc, currentX, y - 2, digit, _fontSmall, color, inactiveColor);
+                    }
+                    currentX += smallWidth + charSpacing;
                 }
             }
         }
