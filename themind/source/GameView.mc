@@ -117,10 +117,6 @@ class GameView extends WatchUi.View {
         dc.drawText(w * 0.54, strY, Graphics.FONT_MEDIUM, "x" + stars.toString(), Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
         drawButton(dc, btnRightX, strY, "+");
 
-        // Draw Menu instruction
-        dc.setColor(0x666666, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.88, Graphics.FONT_XTINY, "SELECT FOR MENU", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-
         // Draw Reward Notification Banner if active
         if (rewardMessage != null) {
             var bannerW = w * 0.75;

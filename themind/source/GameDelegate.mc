@@ -18,7 +18,7 @@ class GameDelegate extends WatchUi.BehaviorDelegate {
         }
     }
 
-    // Physical SELECT button opens the Action Menu or restarts if game finished
+    // Physical SELECT button restarts if game finished
     function onSelect() as Boolean {
         System.println("onSelect event triggered");
         if (_view.status != :playing) {
@@ -26,8 +26,7 @@ class GameDelegate extends WatchUi.BehaviorDelegate {
             WatchUi.requestUpdate();
             return true;
         }
-        openActionMenu();
-        return true;
+        return false;
     }
 
     // Physical BACK button returns to Setup screen
@@ -57,22 +56,6 @@ class GameDelegate extends WatchUi.BehaviorDelegate {
             return true;
         }
         return false;
-    }
-
-    function openActionMenu() as Void {
-        playVibe(40, 100);
-        var menu = new WatchUi.Menu2({:title => "Actions"});
-        
-        menu.addItem(new WatchUi.MenuItem("Next Level", "Level +1", :next_level, null));
-        menu.addItem(new WatchUi.MenuItem("Prev Level", "Level -1", :prev_level, null));
-        menu.addItem(new WatchUi.MenuItem("Lose Life", "Life -1", :lose_life, null));
-        menu.addItem(new WatchUi.MenuItem("Gain Life", "Life +1", :gain_life, null));
-        menu.addItem(new WatchUi.MenuItem("Use Shuriken", "Star -1", :use_star, null));
-        menu.addItem(new WatchUi.MenuItem("Gain Shuriken", "Star +1", :gain_star, null));
-        menu.addItem(new WatchUi.MenuItem("Reset Game", "Start over", :reset, null));
-        
-        var delegate = new TheMindMenuDelegate(_view);
-        WatchUi.pushView(menu, delegate, WatchUi.SLIDE_IMMEDIATE);
     }
 
     function onTap(clickEvent as WatchUi.ClickEvent) as Boolean {
@@ -144,44 +127,8 @@ class GameDelegate extends WatchUi.BehaviorDelegate {
             }
         }
         
-        // If they tap in the middle vertical column or other zones, open the action menu
-        System.println("Menu zone tapped. Opening menu...");
-        openActionMenu();
-        return true;
+        System.println("Tap in dead zone - ignoring");
+        return false;
     }
 }
 
-class TheMindMenuDelegate extends WatchUi.Menu2InputDelegate {
-    private var _view as GameView;
-
-    function initialize(view as GameView) {
-        Menu2InputDelegate.initialize();
-        _view = view;
-    }
-
-    function onSelect(item as MenuItem) as Void {
-        var id = item.getId();
-        System.println("Menu item selected: " + id.toString());
-        if (id == :next_level) {
-            _view.changeLevel(1);
-        } else if (id == :prev_level) {
-            _view.changeLevel(-1);
-        } else if (id == :lose_life) {
-            _view.changeLives(-1);
-        } else if (id == :gain_life) {
-            _view.changeLives(1);
-        } else if (id == :use_star) {
-            _view.changeStars(-1);
-        } else if (id == :gain_star) {
-            _view.changeStars(1);
-        } else if (id == :reset) {
-            _view.resetGame();
-        }
-        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
-        WatchUi.requestUpdate();
-    }
-
-    function onBack() as Void {
-        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
-    }
-}
