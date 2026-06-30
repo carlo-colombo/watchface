@@ -4,6 +4,7 @@ import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
 import Toybox.ActivityMonitor;
+import Toybox.Math;
 import Toybox.SensorHistory;
 import Toybox.Time;
 import Toybox.Time.Gregorian;
@@ -67,6 +68,16 @@ class _9segmentsView extends WatchUi.WatchFace {
         
         updateFonts();
 
+        var foregroundColor = Application.Properties.getValue("ForegroundColor") as Number;
+
+        // Calculate a dimmed inactive color (roughly 1/8 brightness)
+        var r = (foregroundColor >> 16) & 0xFF;
+        var g = (foregroundColor >> 8) & 0xFF;
+        var b = foregroundColor & 0xFF;
+        var inactiveColor = ((r / 8) << 16) | ((g / 8) << 8) | (b / 8);
+
+        drawObjectiveBorder(dc);
+
         if (Application.Properties.getValue("ShowGrid")) {
             drawGrid(dc);
         }
@@ -81,14 +92,6 @@ class _9segmentsView extends WatchUi.WatchFace {
         } else if (hour == 0) {
             hour = 12;
         }
-
-        var foregroundColor = Application.Properties.getValue("ForegroundColor") as Number;
-
-        // Calculate a dimmed inactive color (roughly 1/8 brightness)
-        var r = (foregroundColor >> 16) & 0xFF;
-        var g = (foregroundColor >> 8) & 0xFF;
-        var b = foregroundColor & 0xFF;
-        var inactiveColor = ((r / 8) << 16) | ((g / 8) << 8) | (b / 8);
 
         drawDate(dc, foregroundColor, inactiveColor);
 
@@ -219,6 +222,49 @@ class _9segmentsView extends WatchUi.WatchFace {
         for (var y = 0; y < screenHeight; y += gridSpacing) {
             dc.drawLine(0, y, screenWidth, y);
         }
+    }
+
+    private function drawObjectiveBorder(dc as Dc) as Void {
+        var screenWidth = dc.getWidth();
+        var screenHeight = dc.getHeight();
+        var centerX = screenWidth / 2;
+        var centerY = screenHeight / 2;
+        var radius;
+        if (screenWidth < screenHeight) {
+            radius = screenWidth / 2 - 8;
+        } else {
+            radius = screenHeight / 2 - 8;
+        }
+        var numDots = 60;
+        var dotRadius = 2;
+        var arcColor = 0x888888;
+        var progress = getObjectiveProgress();
+
+        for (var i = 0; i < numDots; i++) {
+            if (i.toFloat() >= progress * numDots.toFloat()) {
+                break;
+            }
+            var angle = ((-90.0 + (i.toFloat() * 360.0 / numDots.toFloat())) * Math.PI / 180.0);
+            var x = (centerX + radius * Math.cos(angle)).toNumber();
+            var y = (centerY + radius * Math.sin(angle)).toNumber();
+
+            dc.setColor(arcColor, Graphics.COLOR_TRANSPARENT);
+            dc.fillCircle(x, y, dotRadius);
+        }
+    }
+
+    private function getObjectiveProgress() as Float {
+        var info = ActivityMonitor.getInfo();
+        var steps = info.steps != null ? info.steps : 0;
+        var goal = info.stepGoal != null ? info.stepGoal : 1;
+        if (goal <= 0) {
+            return 0.0;
+        }
+        var progress = steps.toFloat() / goal.toFloat();
+        if (progress > 1.0) {
+            return 1.0;
+        }
+        return progress;
     }
 
     private function drawComplications(dc as Dc, hourX as Number, hourY as Number, hourHeight as Number, color as Number, inactiveColor as Number) as Void {
