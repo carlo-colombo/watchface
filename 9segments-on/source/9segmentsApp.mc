@@ -2,7 +2,7 @@ import Toybox.Application;
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-class _9segmentsApp extends Application.AppBase {
+class _9segmentsOnApp extends Application.AppBase {
 
     function initialize() {
         AppBase.initialize();
@@ -18,7 +18,7 @@ class _9segmentsApp extends Application.AppBase {
 
     // Return the initial view of your application here
     function getInitialView() as [Views] or [Views, InputDelegates] {
-        return [ new _9segmentsView() ];
+        return [ new _9segmentsOnView() ];
     }
 
     // New app settings have been received so trigger a UI update
@@ -28,6 +28,6 @@ class _9segmentsApp extends Application.AppBase {
 
 }
 
-function getApp() as _9segmentsApp {
-    return Application.getApp() as _9segmentsApp;
+function getApp() as _9segmentsOnApp {
+    return Application.getApp() as _9segmentsOnApp;
 }

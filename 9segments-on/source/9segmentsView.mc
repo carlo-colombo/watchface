@@ -9,13 +9,15 @@ import Toybox.SensorHistory;
 import Toybox.Time;
 import Toybox.Time.Gregorian;
 
-class _9segmentsView extends WatchUi.WatchFace {
+class _9segmentsOnView extends WatchUi.WatchFace {
 
     private var _currentFontType as Number = -1;
     private var _font as FontResource?;
     private var _fontMedium as FontResource?;
     private var _fontSmall as FontResource?;
     private var _fontDate as FontResource?;
+    private var _isLowPower as Boolean = false;
+    private var _aodShift as Number = 0;
 
     function initialize() {
         WatchFace.initialize();
@@ -28,7 +30,8 @@ class _9segmentsView extends WatchUi.WatchFace {
     }
 
     private function updateFonts() as Void {
-        var fontType = Application.Properties.getValue("FontType") as Number;
+        var fontTypeValue = Application.Properties.getValue("FontType");
+        var fontType = fontTypeValue != null ? fontTypeValue as Number : 0;
         if (fontType != _currentFontType) {
             _currentFontType = fontType;
             if (fontType == 0) {
@@ -63,30 +66,36 @@ class _9segmentsView extends WatchUi.WatchFace {
 
     // Update the view
     function onUpdate(dc as Dc) as Void {
-        // Call the parent onUpdate function to redraw the layout
-        View.onUpdate(dc);
-        
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
         updateFonts();
 
-        var foregroundColor = Application.Properties.getValue("ForegroundColor") as Number;
+        if (_isLowPower) {
+            drawLowPower(dc);
+        } else {
+            View.onUpdate(dc);
+            drawHighPower(dc);
+        }
+    }
 
-        // Calculate a dimmed inactive color (roughly 1/8 brightness)
+    private function drawHighPower(dc as Dc) as Void {
+        var foregroundValue = Application.Properties.getValue("ForegroundColor");
+        var foregroundColor = foregroundValue != null ? foregroundValue as Number : 0xFFFFFF;
+
         var r = (foregroundColor >> 16) & 0xFF;
         var g = (foregroundColor >> 8) & 0xFF;
         var b = foregroundColor & 0xFF;
         var inactiveColor = ((r / 8) << 16) | ((g / 8) << 8) | (b / 8);
 
         drawObjectiveBorder(dc);
-
-        if (Application.Properties.getValue("ShowGrid")) {
+        var showGrid = Application.Properties.getValue("ShowGrid");
+        if (showGrid != null && showGrid) {
             drawGrid(dc);
         }
 
         var clockTime = System.getClockTime();
         var hour = clockTime.hour;
         var minute = clockTime.min;
-
-        // Force 12h clock
         if (hour > 12) {
             hour = hour - 12;
         } else if (hour == 0) {
@@ -98,20 +107,15 @@ class _9segmentsView extends WatchUi.WatchFace {
         if (_font != null) {
             var screenWidth = dc.getWidth();
             var screenHeight = dc.getHeight();
-            
-            // DSEG7 font at size 280 is 241x281
             var digitWidth = 241;
             var digitHeight = 281;
             var spacing = 10;
-
             var y = (screenHeight - digitHeight) / 2;
             var totalWidth = digitWidth * 2 + spacing;
             var x = (screenWidth - totalWidth) / 2 - 30;
-
             var firstDigitX = x + 15;
             var secondDigitX = x + digitWidth + spacing - 30;
 
-            // Tens place: always show '1' as background
             dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
             dc.drawText(firstDigitX, y, _font, "!", Graphics.TEXT_JUSTIFY_LEFT);
             dc.drawText(firstDigitX, y, _font, "1", Graphics.TEXT_JUSTIFY_LEFT);
@@ -119,25 +123,20 @@ class _9segmentsView extends WatchUi.WatchFace {
                 dc.setColor(foregroundColor, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(firstDigitX, y, _font, "1", Graphics.TEXT_JUSTIFY_LEFT);
             }
-            
-            // Background '8' for ones place
+
             dc.setColor(inactiveColor, Graphics.COLOR_TRANSPARENT);
             dc.drawText(secondDigitX, y, _font, "8", Graphics.TEXT_JUSTIFY_LEFT);
             drawDigit(dc, secondDigitX, y, hour % 10, _font, foregroundColor, inactiveColor);
 
-            // Draw minutes in the top hole of the second digit
             if (_fontMedium != null) {
                 var minuteString = minute.format("%02d");
                 var mDigitWidth = 62;
                 var mSpacing = 2;
                 var mTotalWidth = mDigitWidth * 2 + mSpacing;
-                
-                // Position inside the top hole
                 var mx = secondDigitX + (digitWidth - mTotalWidth) / 2;
-                var my = y + 40; // Moved 10px up from y + 50
-                
+                var my = y + 40;
                 for (var i = 0; i < minuteString.length(); i++) {
-                    var mDigit = minuteString.substring(i, i+1).toNumber();
+                    var mDigit = minuteString.substring(i, i + 1).toNumber();
                     if (mDigit != null) {
                         drawDigit(dc, (mx + i * (mDigitWidth + mSpacing)).toNumber(), my, mDigit, _fontMedium, foregroundColor, inactiveColor);
                     }
@@ -146,6 +145,53 @@ class _9segmentsView extends WatchUi.WatchFace {
 
             drawComplications(dc, x, y, digitHeight, foregroundColor, inactiveColor);
             drawBattery(dc, screenWidth / 2, screenHeight - 25, foregroundColor, inactiveColor);
+        }
+    }
+
+    private function drawLowPower(dc as Dc) as Void {
+        var clockTime = System.getClockTime();
+        var hour = clockTime.hour;
+        if (hour > 12) {
+            hour = hour - 12;
+        } else if (hour == 0) {
+            hour = 12;
+        }
+
+        var screenWidth = dc.getWidth();
+        var screenHeight = dc.getHeight();
+        var digitWidth = 241;
+        var digitHeight = 281;
+        var spacing = 10;
+        var y = (screenHeight - digitHeight) / 2 + _aodShift;
+        var totalWidth = digitWidth * 2 + spacing;
+        var x = (screenWidth - totalWidth) / 2 - 30 + _aodShift;
+        var firstDigitX = x + 15;
+        var secondDigitX = x + digitWidth + spacing - 30;
+        var color = 0x303030;
+
+        if (_font != null) {
+            dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+            if (hour >= 10) {
+                dc.drawText(firstDigitX, y, _font, "1", Graphics.TEXT_JUSTIFY_LEFT);
+            }
+            dc.drawText(secondDigitX, y, _font, (hour % 10).toString(), Graphics.TEXT_JUSTIFY_LEFT);
+        }
+
+        if (_fontMedium != null) {
+            var minuteString = clockTime.min.format("%02d");
+            var mDigitWidth = 62;
+            var mSpacing = 2;
+            var mTotalWidth = mDigitWidth * 2 + mSpacing;
+            var mx = secondDigitX + (digitWidth - mTotalWidth) / 2;
+            var my = y + 40;
+
+            dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+            for (var i = 0; i < minuteString.length(); i++) {
+                var minuteDigit = minuteString.substring(i, i + 1).toNumber();
+                if (minuteDigit != null) {
+                    dc.drawText((mx + i * (mDigitWidth + mSpacing)).toNumber(), my, _fontMedium, minuteDigit.toString(), Graphics.TEXT_JUSTIFY_LEFT);
+                }
+            }
         }
     }
 
@@ -372,6 +418,11 @@ class _9segmentsView extends WatchUi.WatchFace {
         }
     }
 
+    // Partial updates intentionally do no work: this face has no seconds hand.
+    // Garmin can retain the minute-rendered frame while remaining within the AOD budget.
+    function onPartialUpdate(dc as Dc) as Void {
+    }
+
     // Called when this View is removed from the screen. Save the
     // state of this View here. This includes freeing resources from
     // memory.
@@ -380,10 +431,22 @@ class _9segmentsView extends WatchUi.WatchFace {
 
     // The user has just looked at their watch. Timers and animations may be started here.
     function onExitSleep() as Void {
+        _isLowPower = false;
+        _aodShift = 0;
+        WatchUi.requestUpdate();
     }
 
     // Terminate any active timers and prepare for slow updates.
     function onEnterSleep() as Void {
+        _isLowPower = true;
+        _aodShift = getAodShift();
+        WatchUi.requestUpdate();
+    }
+
+    private function getAodShift() as Number {
+        var minute = System.getClockTime().min;
+        var offsets = [ -2, -1, 0, 1, 2 ];
+        return offsets[minute % offsets.size()];
     }
 
 }
