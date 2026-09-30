@@ -150,7 +150,7 @@ class _9segmentsOnView extends WatchUi.WatchFace {
         var y = clockLayout[:y];
         var firstDigitX = clockLayout[:firstDigitX];
         var secondDigitX = clockLayout[:secondDigitX];
-        var color = 0x303030;
+        var color = 0x555555; // Neutral gray at approximately 9% linear luminance.
 
         if (_font != null) {
             dc.setColor(color, Graphics.COLOR_TRANSPARENT);
