@@ -15,6 +15,8 @@ class _9segmentsOnView extends WatchUi.WatchFace {
     private var _fontMedium as FontResource?;
     private var _fontSmall as FontResource?;
     private var _fontDate as FontResource?;
+    private var _fontLowPower as FontResource?;
+    private var _fontMediumLowPower as FontResource?;
     private var _isLowPower as Boolean = false;
     private var _aodShift as Number = 0;
 
@@ -29,6 +31,11 @@ class _9segmentsOnView extends WatchUi.WatchFace {
     }
 
     private function updateFonts() as Void {
+        if (_fontLowPower == null) {
+            _fontLowPower = WatchUi.loadResource(Rez.Fonts.DSEG7_ClassicHollow);
+            _fontMediumLowPower = WatchUi.loadResource(Rez.Fonts.DSEG7_Classic_MediumHollow);
+        }
+
         var fontTypeValue = Application.Properties.getValue("FontType");
         var fontType = fontTypeValue != null ? fontTypeValue as Number : 0;
         if (fontType < 0 || fontType > 3) {
@@ -132,7 +139,7 @@ class _9segmentsOnView extends WatchUi.WatchFace {
             dc.drawText(secondDigitX, y, _font, "8", Graphics.TEXT_JUSTIFY_LEFT);
             drawDigit(dc, secondDigitX, y, hour % 10, _font, foregroundColor, inactiveColor);
 
-            drawMinutes(dc, clockTime.min, secondDigitX, y, digitWidth, foregroundColor, inactiveColor, true);
+            drawMinutes(dc, clockTime.min, secondDigitX, y, digitWidth, _fontMedium, foregroundColor, inactiveColor, true);
 
             drawComplications(dc, x, y, digitHeight, activityInfo, foregroundColor, inactiveColor);
             drawBattery(dc, screenWidth / 2, screenHeight - 25, foregroundColor, inactiveColor);
@@ -150,17 +157,17 @@ class _9segmentsOnView extends WatchUi.WatchFace {
         var y = clockLayout[:y];
         var firstDigitX = clockLayout[:firstDigitX];
         var secondDigitX = clockLayout[:secondDigitX];
-        var color = 0x555555; // Neutral gray at approximately 9% linear luminance.
+        var color = 0x333333; // Neutral gray at approximately 3.3% linear luminance.
 
-        if (_font != null) {
+        if (_fontLowPower != null) {
             dc.setColor(color, Graphics.COLOR_TRANSPARENT);
             if (hour >= 10) {
-                dc.drawText(firstDigitX, y, _font, "1", Graphics.TEXT_JUSTIFY_LEFT);
+                dc.drawText(firstDigitX, y, _fontLowPower, "1", Graphics.TEXT_JUSTIFY_LEFT);
             }
-            dc.drawText(secondDigitX, y, _font, (hour % 10).toString(), Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(secondDigitX, y, _fontLowPower, (hour % 10).toString(), Graphics.TEXT_JUSTIFY_LEFT);
         }
 
-        drawMinutes(dc, clockTime.min, secondDigitX, y, digitWidth, color, color, false);
+        drawMinutes(dc, clockTime.min, secondDigitX, y, digitWidth, _fontMediumLowPower, color, color, false);
     }
 
     private function toTwelveHourFormat(hour as Number) as Number {
@@ -191,8 +198,8 @@ class _9segmentsOnView extends WatchUi.WatchFace {
         };
     }
 
-    private function drawMinutes(dc as Dc, minute as Number, secondDigitX as Number, y as Number, digitWidth as Number, color as Number, inactiveColor as Number, drawInactiveSegments as Boolean) as Void {
-        if (_fontMedium == null) {
+    private function drawMinutes(dc as Dc, minute as Number, secondDigitX as Number, y as Number, digitWidth as Number, font as FontResource?, color as Number, inactiveColor as Number, drawInactiveSegments as Boolean) as Void {
+        if (font == null) {
             return;
         }
 
@@ -208,10 +215,10 @@ class _9segmentsOnView extends WatchUi.WatchFace {
             if (digit != null) {
                 var digitX = (minuteX + i * (minuteDigitWidth + minuteSpacing)).toNumber();
                 if (drawInactiveSegments) {
-                    drawDigit(dc, digitX, minuteY, digit, _fontMedium, color, inactiveColor);
+                    drawDigit(dc, digitX, minuteY, digit, font, color, inactiveColor);
                 } else {
                     dc.setColor(color, Graphics.COLOR_TRANSPARENT);
-                    dc.drawText(digitX, minuteY, _fontMedium, digit.toString(), Graphics.TEXT_JUSTIFY_LEFT);
+                    dc.drawText(digitX, minuteY, font, digit.toString(), Graphics.TEXT_JUSTIFY_LEFT);
                 }
             }
         }

@@ -1,6 +1,8 @@
 <fonts>
     <font id="DSEG7_Classic" filename="Classic.fnt" />
+    <font id="DSEG7_ClassicHollow" filename="ClassicHollow.fnt" />
     <font id="DSEG7_Classic_Medium" filename="Classic_Medium.fnt" />
+    <font id="DSEG7_Classic_MediumHollow" filename="Classic_MediumHollow.fnt" />
     <font id="DSEG7_Classic_Small" filename="Classic_Small.fnt" />
     <font id="DSEG14_Classic_Date" filename="Classic_D14_Date.fnt" />
     <font id="DSEG7_ClassicMini" filename="ClassicMini.fnt" />
